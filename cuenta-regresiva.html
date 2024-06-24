@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cuenta Regresiva</title>
+  <style>
+    body {
+      height: 100vh;
+      margin: 0;
+
+      background-image: url("https://cdn1.epicgames.com/spt-assets/dcd83ace86fb4501bde1316ca03e29ad/zenless-zone-zero-1g9cs.jpg");
+      background-size: cover;
+    }
+
+    .container {
+      width: 100%;
+      height: 100%;
+
+      display: grid;
+      place-items: center;
+
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    h1 {
+      font-family: monospace;
+      font-size: max(32px, 5vw);
+      color: white;
+    }
+  </style>
+  <script>
+    const padded = (i) => i.toString().padStart(2, '0')
+
+    const dates = [
+      { name: 'ZZZ', date: '2024/07/03', url: 'https://cdn1.epicgames.com/spt-assets/dcd83ace86fb4501bde1316ca03e29ad/zenless-zone-zero-1g9cs.jpg' }
+    ]
+
+    function getCurrentCountdown() {
+      return dates[0]
+    }
+
+    const imageURL = countdown.url;
+    document.body.style.backgroundImage = `url("${imageURL}")`;
+
+    function updateCountdownUI(countdown) {
+      const countdownEl = document.querySelector('#countdown');
+      const launchDate = new Date(countdown.date);
+
+      const currentDate = new Date();
+      const diff = launchDate - currentDate;
+
+      const days = padded(Math.floor(diff / 1000 / 60 / 60 / 24));
+      const hours = padded(Math.floor(diff / 1000 / 60 / 60) % 24);
+      const minutes = padded(Math.floor(diff / 1000 / 60) % 60);
+      const seconds = padded(Math.floor(diff / 1000) % 60);
+
+      countdownEl.innerHTML = `${days}:${hours}:${minutes}:${seconds}` 
+    }
+
+    function main() {
+      const countdown = getCurrentCountdown();
+
+      updateCountdownUI(countdown);
+      setInterval(() => {
+        updateCountdownUI(countdown);
+      }, 1000)
+    }
+  </script>
+</head>
+<body onload="main()">
+  <div class="container">
+    <h1 id="countdown"></h1>
+  </div>
+</body>
+</html>
