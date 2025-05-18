@@ -1,0 +1,159 @@
+const MAX_ATTEMPTS = 6;
+const STORAGE_KEY = 'elswordle_game';
+
+let targetCharacter = null;
+
+function seededRandom(seed) {
+  // Mulberry32 PRNG
+  return function() {
+    let t = seed += 0x6D2B79F5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function sortCharactersDeterministically(characters, seed) {
+  const rng = seededRandom(seed);
+  return [...characters].sort((a, b) => {
+    return rng() - 0.5; // Simulate randomness with seed
+  });
+}
+
+function pickDailyCharacter() {
+  const startDate = new Date("2025-05-17");
+  const daysSince = Math.floor((new Date() - startDate) / (1000 * 60 * 60 * 24));
+  targetCharacter = sortCharactersDeterministically(characters, 528)[daysSince % characters.length];
+}
+
+function getStoredProgress() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  return saved ? JSON.parse(saved) : { guesses: [], streak: 0, lastPlayed: null };
+}
+
+function saveProgress(progress) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+}
+
+function compareChars(guessChar, targetChar) {
+  const guessEffects = effects[guessChar];
+  const targetEffects = effects[targetChar];
+  const guessBaseCharacter = baseCharacters[guessChar];
+  const targetBaseCharacter = baseCharacters[targetChar];
+
+  return [
+    { effect: guessBaseCharacter, status: guessBaseCharacter === targetBaseCharacter ? 'correct' : 'incorrect'  },
+    ...Object.keys(guessEffects).map(effect => {
+      if (targetEffects[effect]) {
+        return { effect, status: 'correct' };
+      }
+      return { effect, status: 'incorrect' };
+    })
+  ];
+}
+
+function isVictory(progress) {
+  return progress.guesses.includes(targetCharacter);
+}
+
+function isGameOver(progress) {
+  return progress.guesses.length >= MAX_ATTEMPTS || isVictory(progress);
+}
+
+function checkGameEnd() {
+  const progress = getStoredProgress();
+
+  if (isGameOver(progress)) {
+    const overlay = document.getElementById("overlay")
+    overlay.children[0].innerHTML = isVictory(progress) ? "✅ YOU WON ✅" : `❌ GAME OVER ❌ <br><br> Correct answer: ${targetCharacter}`
+    overlay.classList.remove("none");
+  };
+}
+
+function handleNewDay() {
+  const progress = getStoredProgress();
+
+  if (!progress || !progress.lastPlayed) {
+    return
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  if (progress.lastPlayed !== today) {
+    saveProgress({
+      ...progress,
+      guesses: [],
+    })
+  }
+}
+
+function submitGuess(guess) {
+  const progress = getStoredProgress();
+  const today = new Date().toISOString().split('T')[0];
+  progress.lastPlayed = today;
+
+  const feedback = compareChars(guess, targetCharacter);
+  progress.guesses.push(guess);
+
+  if (guess === targetCharacter) {
+    progress.streak += 1;
+  } else if (progress.guesses.length === MAX_ATTEMPTS) {
+    progress.streak = 0;
+  }
+
+  saveProgress(progress);
+  checkGameEnd()
+
+  return {
+    feedback,
+    guessNumber: progress.guesses.length,
+  };
+}
+
+function renderGuessFeedback(feedback, guessNumber) {
+  const container = document.querySelector(`#guess-${guessNumber}`);
+  feedback.forEach(({ effect, status }, index) => {
+    const square = container.querySelectorAll('.square')[index];
+    square.className = `square ${status}`;
+    square.innerText = effect;
+  });
+}
+
+function disableGuessButton(guess) {
+  const button = document.querySelector(`#controls > button[name="${guess}"]`);
+  button.disabled = true;
+}
+
+function handleGuessFeedback(guess, feedback, index) {
+  renderGuessFeedback(feedback, index);
+  disableGuessButton(guess)
+}
+
+function setupGame() {
+  pickDailyCharacter();
+  handleNewDay()
+  checkGameEnd()
+
+  const controls = document.querySelector('#controls');
+  Object.entries(icons).forEach(([char, src]) => {
+    const option = document.createElement('button');
+    option.style.backgroundImage = `url(${src})`;
+    option.name = char;
+
+    option.addEventListener('click', () => {
+      const { feedback, guessNumber } = submitGuess(char);
+    if (feedback) {
+      handleGuessFeedback(char, feedback, guessNumber);
+    }
+    });
+
+    controls.appendChild(option);
+  });
+
+  const progress = getStoredProgress();
+  progress.guesses.forEach((guess, index) => {
+    const feedback = compareChars(guess, targetCharacter);
+    handleGuessFeedback(guess, feedback, index + 1);
+  })
+}
+
+document.addEventListener('DOMContentLoaded', setupGame);
