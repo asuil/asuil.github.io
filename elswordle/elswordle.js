@@ -1,4 +1,5 @@
 const MAX_ATTEMPTS = 6;
+const HINTS_PER_GUESS = 5;
 const STORAGE_KEY = 'elswordle_game';
 
 let targetCharacter = null;
@@ -21,9 +22,12 @@ function sortCharactersDeterministically(characters, seed) {
 }
 
 function pickDailyCharacter() {
-  const startDate = new Date("2025-05-17");
+  const startDate = new Date("2025-05-16");
   const daysSince = Math.floor((new Date() - startDate) / (1000 * 60 * 60 * 24));
-  targetCharacter = sortCharactersDeterministically(characters, 528)[daysSince % characters.length];
+  const iterationNumber = Math.floor(daysSince / characters.length) + 1;
+  const seed = 528 + iterationNumber;
+  const offset = daysSince % characters.length
+  targetCharacter = sortCharactersDeterministically(characters, seed)[offset];
 }
 
 function getStoredProgress() {
@@ -38,11 +42,16 @@ function saveProgress(progress) {
 function compareChars(guessChar, targetChar) {
   const guessEffects = effects[guessChar];
   const targetEffects = effects[targetChar];
+
   const guessBaseCharacter = baseCharacters[guessChar];
   const targetBaseCharacter = baseCharacters[targetChar];
 
+  const guessAttackType = characterAttackType[guessChar];
+  const targetAttackType = characterAttackType[targetChar];
+
   return [
     { effect: guessBaseCharacter, status: guessBaseCharacter === targetBaseCharacter ? 'correct' : 'incorrect'  },
+    { effect: guessAttackType, status: guessAttackType === targetAttackType ? 'correct' : 'incorrect' },
     ...Object.keys(guessEffects).map(effect => {
       if (targetEffects[effect]) {
         return { effect, status: 'correct' };
@@ -101,7 +110,8 @@ function submitGuess(guess) {
   }
 
   saveProgress(progress);
-  checkGameEnd()
+  renderStreak();
+  checkGameEnd();
 
   return {
     feedback,
@@ -128,7 +138,26 @@ function handleGuessFeedback(guess, feedback, index) {
   disableGuessButton(guess)
 }
 
+function generateEmptyHintSpaces() {
+  for (let i = 0; i < MAX_ATTEMPTS; i++) {
+    const container = document.querySelector(`#guess-${i + 1}`);
+    for (let j = 0; j < HINTS_PER_GUESS; j++) {
+      const square = document.createElement('div');
+      square.className = 'square empty';
+      container.appendChild(square);
+    }
+  }
+}
+
+function renderStreak() {
+  const streakElement = document.querySelector('#streak');
+  const streak = getStoredProgress().streak
+  streakElement.innerText = `Current streak: ${streak}`;
+}
+
 function setupGame() {
+  generateEmptyHintSpaces();
+
   pickDailyCharacter();
   handleNewDay()
   checkGameEnd()
@@ -154,6 +183,8 @@ function setupGame() {
     const feedback = compareChars(guess, targetCharacter);
     handleGuessFeedback(guess, feedback, index + 1);
   })
+
+  renderStreak();
 }
 
 document.addEventListener('DOMContentLoaded', setupGame);

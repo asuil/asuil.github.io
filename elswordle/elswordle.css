@@ -99,3 +99,12 @@ body {
 #overlay.none {
   display: none;
 }
+
+#streak {
+  position: absolute;
+  top: 6vw;
+  right: 0;
+  padding: 1vw 2vw;
+  font-size: 3vw;
+  background-color: #d3d6da;
+}
