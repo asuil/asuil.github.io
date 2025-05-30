@@ -7,10 +7,10 @@ body {
   --gap-s: 4px;
   --gap-m: 16px;
 
-  --control-s: 40px;
-  --control-m: 48px;
+  --control-s: 32px;
+  --control-m: 40px;
   
-  --square-s: 48px;
+  --square-s: 40px;
   --square-m: 128px;
 
   --padding-xs: 4px;
@@ -190,8 +190,11 @@ body {
   position: absolute;
   top: 24px;
   right: 0;
-
+  
+  max-width: calc((100vw - 100px) / 2 - 2 * var(--padding-m));
   padding: var(--padding-s) var(--padding-m);
 
+  text-align: center;
   background-color: #d3d6da;
+  font-size: 12px;
 }
