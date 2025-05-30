@@ -79,3 +79,12 @@ const baseCharacters = {
   "Achlys": "Lithia",
   "Mischief": "Lithia"
 };
+
+const pathsPerBase = Object.entries(baseCharacters).reduce((acc, [path, base]) => {
+  if (base in acc) {
+    acc[base].push(path);
+  } else {
+    acc[base] = [path];
+  }
+  return acc;
+}, {});

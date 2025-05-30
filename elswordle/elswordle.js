@@ -73,8 +73,21 @@ function checkGameEnd() {
   const progress = getStoredProgress();
 
   if (isGameOver(progress)) {
-    const overlay = document.getElementById("overlay")
-    overlay.children[0].innerHTML = isVictory(progress) ? "✅ YOU WON ✅" : `❌ GAME OVER ❌ <br><br> Correct answer: ${targetCharacter}`
+    const overlay = document.getElementById("overlay");
+    const title = document.createElement('h3');
+    const subtitle = document.createElement('p');
+    const img = document.createElement('img');
+
+    if (isVictory(progress)) {
+      title.innerText = "✅ YOU WON ✅";
+      subtitle.innerText = targetCharacter;
+    } else {
+      title.innerText = "❌ GAME OVER ❌";
+      subtitle.innerText = `Correct answer: ${targetCharacter}`;
+    }
+
+    img.src = icons[targetCharacter];
+    overlay.children[0].replaceChildren(title, subtitle, img);
     overlay.classList.remove("none");
   };
 }
@@ -124,12 +137,14 @@ function renderGuessFeedback(feedback, guessNumber) {
   feedback.forEach(({ effect, status }, index) => {
     const square = container.querySelectorAll('.square')[index];
     square.className = `square ${status}`;
-    square.innerText = effect;
+    const text = document.createElement('span')
+    text.innerText = effect;
+    square.replaceChildren(text);
   });
 }
 
 function disableGuessButton(guess) {
-  const button = document.querySelector(`#controls > button[name="${guess}"]`);
+  const button = document.querySelector(`#controls button[name="${guess}"]`);
   button.disabled = true;
 }
 
@@ -163,19 +178,25 @@ function setupGame() {
   checkGameEnd()
 
   const controls = document.querySelector('#controls');
-  Object.entries(icons).forEach(([char, src]) => {
-    const option = document.createElement('button');
-    option.style.backgroundImage = `url(${src})`;
-    option.name = char;
+  Object.entries(pathsPerBase).forEach(([_, paths]) => {
+    const container = document.createElement('div');
 
-    option.addEventListener('click', () => {
-      const { feedback, guessNumber } = submitGuess(char);
-    if (feedback) {
-      handleGuessFeedback(char, feedback, guessNumber);
-    }
+    paths.forEach(path => {
+      const option = document.createElement('button');
+      option.style.backgroundImage = `url(${icons[path]})`;
+      option.name = path;
+
+      option.addEventListener('click', () => {
+        const { feedback, guessNumber } = submitGuess(path);
+        if (feedback) {
+          handleGuessFeedback(path, feedback, guessNumber);
+        }
+      });
+
+      container.appendChild(option);
     });
 
-    controls.appendChild(option);
+    controls.appendChild(container);
   });
 
   const progress = getStoredProgress();
