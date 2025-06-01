@@ -69,11 +69,17 @@ function isGameOver(progress) {
   return progress.guesses.length >= MAX_ATTEMPTS || isVictory(progress);
 }
 
+function hideModal() {
+  const overlay = document.getElementById("overlay");
+  overlay.classList.add("none");
+}
+
 function checkGameEnd() {
   const progress = getStoredProgress();
 
   if (isGameOver(progress)) {
     const overlay = document.getElementById("overlay");
+    const closeEl = document.querySelector(".overlay-close")
     const title = document.createElement('h3');
     const subtitle = document.createElement('p');
     const img = document.createElement('img');
@@ -87,7 +93,7 @@ function checkGameEnd() {
     }
 
     img.src = icons[targetCharacter];
-    overlay.children[0].replaceChildren(title, subtitle, img);
+    overlay.children[0].replaceChildren(closeEl, title, subtitle, img);
     overlay.classList.remove("none");
   };
 }

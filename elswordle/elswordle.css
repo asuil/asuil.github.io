@@ -24,6 +24,12 @@ body {
   margin: 0;
 }
 
+button {
+  padding: unset;
+  border: unset;
+  background-color: unset;
+}
+
 .container {
   min-height: 100%;
   max-height: 100%;
@@ -174,12 +180,22 @@ body {
 }
 
 #overlay > .overlay-content {
+  position: relative;
+
   padding: var(--padding-l);
 
   text-align: center;
 
   background-color: white;
   border-radius: 4px;
+}
+
+#overlay > .overlay-content > .overlay-close {
+  position: absolute;
+  top: var(--gap-s);
+  right: var(--gap-s);
+
+  color: gray
 }
 
 #overlay.none {
