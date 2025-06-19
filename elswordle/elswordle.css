@@ -18,7 +18,7 @@ body {
   --padding-m: 16px;
   --padding-l: 32px;
 
-  height: 100vh;
+  height: 100dvh;
   width: 100vw;
   padding: var(--padding-m);
   margin: 0;
@@ -41,7 +41,7 @@ button {
 }
 
 .logo {
-  height: 10vh;
+  height: 10dvh;
   min-height: 60px;
   max-height: 100px;
   width: max-content;
